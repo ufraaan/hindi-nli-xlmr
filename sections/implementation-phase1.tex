@@ -1,0 +1,114 @@
+\section{Implementation Plan}
+
+\subsection{Phase 1: Environment Setup (Day 1)}
+
+\begin{enumerate}[nosep]
+    \item Create a Python virtual environment
+    \item Install dependencies:
+\begin{minted}{bash}
+pip install torch transformers datasets evaluate scikit-learn matplotlib
+\end{minted}
+    \item Verify GPU access:
+\begin{minted}{python}
+python -c "import torch; print(torch.backends.mps.is_available())"
+\end{minted}
+\end{enumerate}
+
+\subsection{Phase 2: Dataset Exploration (Day 2)}
+
+\begin{enumerate}[nosep]
+    \item Load XNLI for Hindi:
+\begin{minted}{python}
+from datasets import load_dataset
+dataset = load_dataset("xnli", "hi")
+print(dataset["train"][0])
+\end{minted}
+    \item Understand label mapping: 0 = Entailment, 1 = Neutral, 2 = Contradiction
+    \item Statistics: 392k training pairs (machine-translated from English), 2.5k validation, 5k test
+\end{enumerate}
+
+\subsection{Phase 3: Model \& Tokenizer Setup (Day 3)}
+
+\begin{minted}{python}
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+model_name = "xlm-roberta-base"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSequenceClassification.from_pretrained(
+    model_name, num_labels=3
+)
+\end{minted}
+
+\subsection{Phase 4: Training Pipeline (Day 4-5)}
+
+\begin{enumerate}[nosep]
+    \item Tokenize the dataset (padding, truncation to 128 tokens)
+    \item Set device to Metal (MPS) for Apple Silicon:
+\begin{minted}{python}
+import torch
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+model.to(device)
+\end{minted}
+    \item Configure TrainingArguments:
+\begin{minted}{python}
+TrainingArguments(
+    output_dir="./xnli-hindi-model",
+    evaluation_strategy="epoch",
+    save_strategy="epoch",
+    num_train_epochs=3,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=64,
+    warmup_ratio=0.1,
+    logging_dir="./logs",
+    fp16=True,
+    load_best_model_at_end=True,
+    metric_for_best_model="accuracy",
+)
+\end{minted}
+    \item Define compute\_metrics function (accuracy, precision, recall, F1)
+    \item Run Trainer:
+\begin{minted}{python}
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=encoded["train"],
+    eval_dataset=encoded["validation"],
+    tokenizer=tokenizer,
+    compute_metrics=compute_metrics,
+)
+trainer.train()
+\end{minted}
+    \item Expected training time: 30-45 minutes on M5 Apple GPU (per epoch)
+\end{enumerate}
+
+\subsection{Phase 5: Evaluation (Day 6)}
+
+\begin{minted}{python}
+results = trainer.evaluate(encoded["test"])
+print("Test Accuracy:", results["eval_accuracy"])
+\end{minted}
+
+Expected results:
+\begin{itemize}[nosep]
+    \item \textbf{Accuracy:} 85-88\%
+    \item \textbf{F1 Score:} 0.84-0.87
+    \item \textbf{Precision:} 0.83-0.87
+    \item \textbf{Recall:} 0.85-0.88
+\end{itemize}
+
+\subsection{Phase 6: Inference Demo (Day 7)}
+
+Build a reusable inference function:
+\begin{minted}{python}
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+model.to(device)
+
+def predict_entailment(premise, hypothesis):
+    inputs = tokenizer(premise, hypothesis,
+                       return_tensors="pt", truncation=True)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    outputs = model(**inputs)
+    probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
+    label = torch.argmax(probs).item()
+    return {0: "Entailment", 1: "Neutral", 2: "Contradiction"}[label]
+\end{minted}

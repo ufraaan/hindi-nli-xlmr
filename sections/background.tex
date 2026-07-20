@@ -1,0 +1,21 @@
+\section{Background}
+
+\subsection{The Original Paper (Khader et al., 2016)}
+
+\begin{itemize}[nosep]
+    \item \textbf{Task:} Recognizing Textual Entailment (RTE) for Arabic
+    \item \textbf{Approach:} Lexical analysis (word overlap + bigram matching) + semantic matching (synonyms)
+    \item \textbf{Dataset:} ArbTEDS --- 618 Text-Hypothesis pairs
+    \item \textbf{Results:} 61\% precision and recall (Entails: 68\% precision, NotEntails: 58\% precision)
+    \item \textbf{Tools:} Python, ISRI stemmer, MSTParser, Mada POS tagger
+\end{itemize}
+
+\subsection{Limitations of the Original Work}
+
+\begin{itemize}[nosep]
+    \item Manual feature engineering --- does not scale to new domains
+    \item Simple threshold-based decision --- no learning involved
+    \item Small dataset (618 pairs) --- limits generalization
+    \item Binary classification (Entails / NotEntails) --- no neutral/contradiction distinction
+    \item The authors themselves note in their future work that testing on other languages is needed
+\end{itemize}

@@ -1,0 +1,112 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage[scaled=0.82]{beramono}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{minted}
+
+\geometry{margin=1in}
+
+\usemintedstyle{default}
+
+\setminted{
+    fontsize=\small,
+    breaklines=true,
+    breaksymbolleft=,
+    tabsize=4,
+    frame=leftline,
+    framesep=8pt,
+    rulecolor=black!15,
+    bgcolor=gray!4,
+    linenos=true,
+    numbersep=6pt,
+    numberblanklines=false,
+}
+\setstretch{1.15}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    pdftitle={Project Plan - Cross-Lingual Textual Entailment},
+    pdfauthor={Mohammed Ufraan},
+    breaklinks=true,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Two-Phase Project Plan}
+\fancyhead[R]{\small DL Assignment + KG Survey}
+\fancyfoot[C]{\thepage}
+
+\titleformat{\section}{\Large\bfseries\color{blue!60!black}}{}{0em}{}[\vspace{-0.3em}\rule{\textwidth}{0.5pt}]
+\titleformat{\subsection}{\bfseries\color{black}}{}{0em}{}
+
+\begin{document}
+
+\pagenumbering{Alph}
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge\bfseries Project Plan\par}
+    \vspace{0.5cm}
+    {\LARGE Two-Phase Deep Learning Project\par}
+    \vspace{1cm}
+    {\Large\textbf{Phase 1:} Cross-Lingual Textual Entailment for Hindi\par}
+    {\Large Using Transformer-Based Deep Learning\par}
+    \vspace{0.7cm}
+    {\Large\textbf{Phase 2:} Technical Review Paper on Knowledge Graph\par}
+    {\Large Construction for Indic Languages\par}
+    \vspace{1.5cm}
+    {\large Deep Learning Course Assignment + Undergraduate Publication\par}
+    \vspace{0.5cm}
+    {\large Prepared for: Professor}\par
+    \vspace{1cm}
+    {\large Prepared by: Mohammed Ufraan}\par
+    \vspace{0.5cm}
+    {\large \today}\par
+    \vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\include{sections/executive-summary}
+\include{sections/background}
+\include{sections/proposed-approach}
+\include{sections/prerequisites}
+\include{sections/technical-stack}
+
+\part{Phase 1: NLI Assignment}
+\include{sections/implementation-phase1}
+\include{sections/expected-results}
+
+\part{Phase 2: KG Survey Paper}
+\include{sections/phase2-kg-paper}
+
+\include{sections/paper-structure}
+\include{sections/timeline}
+\include{sections/deliverables}
+\include{sections/references}
+
+\vfill
+\begin{center}
+\rule{0.5\textwidth}{0.5pt}\\
+\textit{End of Plan}
+\end{center}
+
+\end{document}

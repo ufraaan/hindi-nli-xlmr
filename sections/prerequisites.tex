@@ -1,0 +1,266 @@
+\section{Prerequisites}
+
+\textit{This section describes what you need to know --- and what to study if you don't already. Each subsection explains a concept, why it matters for this project, and suggests concrete learning goals. Work through them in order.}
+
+\subsection{Python Programming}
+
+You need comfort with Python beyond tutorials. Specifically:
+
+\begin{itemize}[nosep]
+    \item \textbf{Data structures:} lists, dicts, sets, list comprehensions --- you will slice datasets, batch indices, and map functions over sequences.
+    \item \textbf{Functions \& classes:} the training script defines a custom \texttt{Log} class and a \texttt{tokenize\_fn}; you should understand \texttt{self}, \texttt{\_\_init\_\_}, and how methods work.
+    \item \textbf{pip \& virtual environments:} create an isolated environment so library versions don't clash:
+\begin{minted}{bash}
+python3 -m venv .venv && source .venv/bin/activate && pip install ...
+\end{minted}
+    \item \textbf{Reading tracebacks:} most errors during ML training come from shape mismatches, wrong dtypes, or missing keys --- deciphering a Python traceback is a core skill.
+\end{itemize}
+
+\textbf{If you're at ``I've written a few scripts'':} you're fine. If you're at ``I just started learning Python,''\ watch a crash course first (e.g., Corey Schafer's Python tutorials on YouTube).
+
+\subsection{Mathematics Fundamentals}
+
+You do not need a math degree, but these three things appear constantly:
+
+\begin{itemize}[nosep]
+    \item \textbf{Matrices \& vectors:} every batch of tokenized text is a matrix of shape \texttt{[batch\_size, max\_length]}. The transformer processes this matrix through linear algebra operations. Be comfortable with what a matrix is, what dimensions mean, and how matrix multiplication works.
+    \item \textbf{Probabilities \& logarithms:} the model outputs raw scores called \textit{logits}; these are passed through \texttt{softmax} to convert them into probabilities (three numbers that sum to 1). The training loss is \textit{cross-entropy}, which measures how far the predicted probability distribution is from the correct label. Lower cross-entropy = better prediction.
+    \item \textbf{Gradients (conceptually):} training adjusts the model's weights by computing \textit{gradients} --- which direction and how much to tweak each weight to reduce the loss. PyTorch handles this automatically via \texttt{loss.backward()}, but understand that it's just calculus (chain rule) applied at scale.
+\end{itemize}
+
+\textbf{Study target:} watch 3Blue1Brown's ``Essence of Linear Algebra'' and ``Gradient Descent, How Neural Networks Learn'' on YouTube (15 min each).
+
+\subsection{Neural Networks \& Deep Learning}
+
+A neural network is a function \texttt{f(x, W)} that maps input \texttt{x} (token IDs) to output \texttt{y} (label probabilities) using learned parameters \texttt{W} (weights). Training means finding weights that minimize the error on training data.
+
+\begin{itemize}[nosep]
+    \item \textbf{Forward pass:} input flows through layers (embeddings $\rightarrow$ attention $\rightarrow$ feed-forward $\rightarrow$ classification head) and produces a prediction.
+    \item \textbf{Loss function:} cross-entropy loss compares the prediction to the correct label. Lower loss = better fit.
+    \item \textbf{Backward pass (backpropagation):} the loss signal flows backward through the network, computing gradients for every weight.
+    \item \textbf{Optimizer:} AdamW (the standard for Transformers) uses gradients to update weights. It maintains per-parameter learning rates and momentum.
+    \item \textbf{Epoch:} one full pass through the entire training dataset (392k pairs for XNLI Hindi). Multiple epochs let the model see each example more than once, but too many cause overfitting.
+    \item \textbf{Batch:} a group of \texttt{BATCH\_SIZE} examples processed together. Larger batches give smoother gradients but use more GPU memory.
+    \item \textbf{Overfitting:} when the model memorizes training data but fails on unseen data. Prevented by: stopping early, using a validation set, regularization, and dropout (built into XLM-RoBERTa).
+\end{itemize}
+
+\subsection{The Transformer Architecture}
+
+This is the most important section. XLM-RoBERTa is a Transformer, and you must understand its components to interpret training output and write the paper.
+
+\subsubsection{Embedding Layer}
+
+Every token ID (e.g., 4823 for \textsf{kar} or 104 for the subword token \textsf{ing}) is converted to a dense vector (\textbf{embedding}) of size 768 (for \texttt{xlm-roberta-base}). These embeddings are learned: semantically similar tokens have similar vectors. Three separate embeddings are summed per token: token embedding + position embedding (tells the model where each token is in the sequence) + language embedding (tells XLM-RoBERTa which language the input is in; crucial for multilingual models).
+
+\subsubsection{Self-Attention Mechanism}
+
+This is the heart of the Transformer. For each token, self-attention computes a weighted sum of all other tokens' representations. The weight (\textit{attention score}) between token A and token B measures how relevant B is to understanding A.
+
+\begin{itemize}[nosep]
+    \item Each token produces three vectors: \textbf{Query (Q)}, \textbf{Key (K)}, \textbf{Value (V)} via learned weight matrices.
+    \item Attention score between token $i$ and $j$ = $\text{softmax}\left(\frac{Q_i \cdot K_j}{\sqrt{d_k}}\right)$. The dot product measures similarity; softmax normalizes all scores to sum to 1; dividing by $\sqrt{d_k}$ prevents extreme values.
+    \item The output for token $i$ is the weighted sum of all Value vectors: $\sum_j \text{score}_{i,j} V_j$.
+    \item This means every token can directly ``look at'' every other token in one step --- unlike RNNs that process left-to-right and lose distant context.
+\end{itemize}
+
+\subsubsection{Multi-Head Attention}
+
+Instead of one attention calculation, XLM-RoBERTa runs 12 (base) or 16 (large) \textbf{heads} in parallel. Each head learns to focus on different relationships: one head might track subject-verb agreement, another might track negation words, another might track adjective-noun pairs. The 12 outputs are concatenated and projected back to 768 dimensions.
+
+\subsubsection{Transformer Block Structure}
+
+A single Transformer block (layer) does:
+
+\begin{enumerate}[nosep]
+    \item \textbf{Multi-head self-attention} on the input
+    \item \textbf{Add \& LayerNorm:} add the attention output to the original input (residual connection) then normalize. Residual connections help gradients flow through deep networks.
+    \item \textbf{Feed-forward network (FFN):} two linear layers with a GELU activation in between. This is where the model does most of its ``thinking'' --- each token's representation is transformed non-linearly.
+    \item \textbf{Add \& LayerNorm:} another residual connection and normalization.
+\end{enumerate}
+
+XLM-RoBERTa-base stacks 12 such blocks. Each block gives the model a chance to refine its representation based on wider context.
+
+\subsubsection{Classification Head}
+
+After all 12 layers, the model outputs a vector of size 768 for each token. For sequence classification, we take the first token (a special \texttt{<s>} token, also called CLS) and pass it through a new linear layer that maps 768 $\rightarrow$ 3. Those 3 numbers are the \textit{logits} for Entailment, Neutral, and Contradiction. Softmax converts them to probabilities.
+
+\subsubsection{XLM-RoBERTa vs. BERT}
+
+XLM-RoBERTa is an improved multilingual BERT:
+\begin{itemize}[nosep]
+    \item \textbf{More data:} trained on 2.5 TB of CommonCrawl text across 100 languages (vs. BERT's English-only 16 GB).
+    \item \textbf{No language ID required:} the model infers the input language from the tokens themselves.
+    \item \textbf{SentencePiece tokenizer:} subword tokenizer that handles any language with a 250k vocabulary (vs. BERT's 30k English WordPiece). A word like ``\textsf{\textbf{namaste}}'' might be split into ``\textsf{\textbf{nam}}'' + ``\textsf{\textbf{ste}}'' if the whole word isn't in the vocabulary.
+    \item \textbf{Dynamic masking:} BERT's masking pattern was fixed during pre-processing; RoBERTa (and XLM-R) re-generates masks each time data is seen, leading to more robust learning.
+    \item \textbf{Larger batch and more steps:} trained for 500k steps with large batches vs. BERT's 1M steps with smaller batches.
+\end{itemize}
+
+\subsection{Tokenization in Detail}
+
+Tokenization converts raw text (Hindi sentences) into integers the model can process.
+
+\begin{itemize}[nosep]
+    \item \textbf{SentencePiece:} XLM-RoBERTa uses a 250k-token unigram language model tokenizer. It learns a probability distribution over subword units and splits unknown words into the most likely sequence of known subwords.
+    \item \textbf{Padding \& truncation:} all sequences in a batch must be the same length. Shorter sequences get \texttt{<pad>} tokens (ID = 1) added to the end (padding). Sequences longer than \texttt{max\_length} (128) get cut (truncation).
+    \item \textbf{Attention mask:} a binary mask (1 = real token, 0 = padding token) tells the model which positions to attend to and which to ignore.
+    \item \textbf{Output format:} the tokenizer returns a dict with \texttt{input\_ids} (the integer IDs), \texttt{attention\_mask} (the 0/1 mask), and nothing else (since XLM-R doesn't use token type IDs).
+\end{itemize}
+
+\subsection{Transfer Learning \& Fine-Tuning}
+
+This is the single most important concept for the entire project.
+
+\begin{itemize}[nosep]
+    \item \textbf{Pre-training:} XLM-RoBERTa was trained on a massive corpus (2.5 TB) to predict masked tokens (like a fill-in-the-blank game). It learned general language understanding --- grammar, syntax, some semantics, cross-lingual alignment --- without any labeled data.
+    \item \textbf{Fine-tuning:} we take the pre-trained model and continue training on a specific task (NLI) with labeled data. The pre-trained weights are a great starting point; fine-tuning adapts them to our task with relatively little data (392k pairs is small for a 278M-parameter model).
+    \item \textbf{Why this works:} The general linguistic knowledge from pre-training transfers to the specific task. The classification head (randomly initialized at first) quickly learns to interpret the 768-dimensional representations for entailment. Without pre-training, 392k pairs would be far too little data to train a 278M-parameter model from scratch.
+    \item \textbf{Learning rate:} fine-tuning uses a much smaller learning rate (2e-5) than pre-training (1e-4). We want to adapt, not overwrite, the pre-trained knowledge.
+    \item \textbf{Warmup:} the learning rate starts at 0 and linearly increases to 2e-5 over the first 10\% of training steps. This prevents the randomly initialized classification head from causing large gradient updates that would disrupt the pre-trained weights.
+\end{itemize}
+
+\subsection{The Textual Entailment (NLI) Task}
+
+\subsubsection{Task Structure}
+
+\textbf{Premise:} A statement of fact (reference sentence).\\
+\textbf{Hypothesis:} A claim to be checked against the premise.\\
+\textbf{Label:} one of three:
+\begin{itemize}[nosep]
+    \item \textbf{Entailment (0):} the hypothesis follows logically from the premise.
+    \item \textbf{Neutral (1):} the hypothesis might be true or false given the premise --- no logical connection.
+    \item \textbf{Contradiction (2):} the hypothesis is false given the premise.
+\end{itemize}
+
+Example (from XNLI Hindi):
+\begin{itemize}[nosep]
+    \item Premise: ``\textsf{\textbf{ladka kamre mein khel raha hai}}'' (The boy is playing in the room)
+    \item Hypothesis: ``\textsf{\textbf{ladka ghar ke andar hai}}'' (The boy is inside the house)
+    \item Label: Entailment
+\end{itemize}
+
+\subsubsection{Why 3 classes instead of 2}
+
+The original paper (Khader et al., 2016) used binary classification: Entails / Not Entails. Three-class NLI is more realistic --- the presence or absence of evidence is not the same as contradiction. A model that only distinguishes ``entails vs. not-entails'' cannot tell the difference between ``unrelated'' and ``actively contradicts.''
+
+\subsection{PyTorch for This Project}
+
+You don't need to be a PyTorch expert, but you should understand these specific things:
+
+\begin{itemize}[nosep]
+    \item \textbf{Tensors:} the fundamental data structure. A tokenized batch is a \texttt{torch.LongTensor} of shape \texttt{[16, 128]} (16 sentences, each 128 token IDs). The model's hidden states are \texttt{torch.FloatTensor} of shape \texttt{[16, 128, 768]}.
+    \item \textbf{.to(device):} moves tensors and models between CPU, MPS (Apple GPU), or CUDA (NVIDIA GPU). Mismatched device = crash:
+\begin{minted}{python}
+model = model.to("mps")
+inputs = inputs.to("mps")
+\end{minted}
+    \item \textbf{torch.no\_grad():} disables gradient computation during evaluation. Saves memory and is 2-3$\times$ faster.
+    \item \textbf{loss.backward():} computes gradients. Only called during training, not evaluation.
+    \item \textbf{optimizer.step():} updates weights using gradients. Combined with \texttt{loss.backward()}, this is the training loop's core.
+    \item \textbf{MPS backend (Apple Silicon):} Apple's Metal Performance Shaders for GPU acceleration. Not as mature as CUDA, but works for FP32 training. Some operations fall back to CPU silently.
+\end{itemize}
+
+\subsection{Hugging Face Ecosystem}
+
+The Hugging Face libraries do the heavy lifting so you don't have to write transformers from scratch.
+
+\begin{itemize}[nosep]
+    \item \textbf{AutoTokenizer:} loads the correct tokenizer for any model by name. Handles padding, truncation, special tokens, and device placement. Returns pre-formatted dicts ready for the model.
+    \item \textbf{AutoModelForSequenceClassification:} loads a pre-trained model with a classification head. The \texttt{num\_labels=3} argument replaces the default head with a 3-output linear layer. The warning \texttt{``Some weights were not initialized''} is expected --- it refers to the randomly initialized head.
+    \item \textbf{Datasets library:} loads datasets from Hugging Face Hub or local files. Uses Apache Arrow under the hood (fast, memory-mapped). Supports \texttt{.map()} for efficient batch processing and \texttt{.select()} for subsetting.
+    \item \textbf{Trainer API:} the highest-level abstraction. Wraps the training loop (forward, backward, optimizer step, logging, evaluation, checkpointing). You configure it with \texttt{TrainingArguments} and call \texttt{trainer.train()}. Beneath it, the loop does:
+\begin{minted}{python}
+for epoch in range(num_epochs):
+    for batch in dataloader:
+        outputs = model(**batch)
+        loss = outputs.loss
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+        optimizer.zero_grad()
+\end{minted}
+    \item \textbf{TrainingArguments:} the configuration object. Key fields: \texttt{output\_dir}, \texttt{num\_train\_epochs}, \texttt{per\_device\_train\_batch\_size}, \texttt{logging\_strategy}, \texttt{eval\_strategy}, \texttt{save\_strategy}, \texttt{learning\_rate}, \texttt{warmup\_ratio}.
+\end{itemize}
+
+\subsection{Evaluation Metrics}
+
+\subsubsection{Accuracy}
+
+The fraction of predictions that exactly match the correct label. This is the main metric we report, but it can be misleading if classes are imbalanced (XNLI Hindi is balanced at 33\% each).
+
+$$\text{Accuracy} = \frac{\text{Correct predictions}}{\text{Total predictions}}$$
+
+\subsubsection{Precision, Recall, F1}
+
+For each class (e.g., Entailment):
+
+\begin{itemize}[nosep]
+    \item \textbf{Precision:} of all examples the model labeled as Entailment, what fraction were actually Entailment? High precision = few false positives.
+    $$\text{Precision} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}}$$
+    \item \textbf{Recall:} of all examples that are truly Entailment, what fraction did the model catch? High recall = few false negatives.
+    $$\text{Recall} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}$$
+    \item \textbf{F1 Score:} harmonic mean of precision and recall. A balanced measure.
+    $$F_1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$$
+\end{itemize}
+
+XNLI evaluation typically reports \textbf{macro F1} (average F1 across all three classes, treating each class equally) alongside accuracy.
+
+\subsubsection{Confusion Matrix}
+
+A 3$\times$3 table showing predicted vs.\ actual labels for every test example. Rows = actual labels, columns = predicted labels. The diagonal shows correct predictions; off-diagonal numbers show specific error patterns (e.g., confusing Neutral for Contradiction). The confusion matrix is the most informative single visualization.
+
+\subsection{Hardware Awareness}
+
+Understanding your hardware constraints changes how you train:
+
+\begin{itemize}[nosep]
+    \item \textbf{Unified memory (M5):} the CPU and GPU share 24 GB RAM. No separate VRAM, but this also means the GPU doesn't have its own dedicated high-bandwidth memory. MPS uses the same pool.
+    \item \textbf{Paging:} with 24 GB unified memory, a 278M-parameter model in FP32 ($\sim$1.1 GB) plus 392k tokenized sequences ($\sim$2 GB) fits easily. However, PyTorch's MPS backend may page to swap if memory pressure is high.
+    \item \textbf{FP32:} we use float32 precision (not float16 mixed precision). MPS mixed precision (AMP) is experimental on Apple Silicon and can cause crashes. FP32 is slower but stable.
+    \item \textbf{Batch size trade-off:} larger batches = faster training per-sample but require more memory. Batch size 16 is a conservative choice for 24 GB.
+    \item \textbf{Training time estimate:} at $\sim$1.07 samples/second on M5, one epoch of 392k samples takes $\sim$102 hours$\div$3600 = approx. 6.1 hours. Each additional epoch adds roughly the same time.
+\end{itemize}
+
+\subsection{Book Reading Plan: ``Fundamentals of Deep Learning'' (Buduma \& Locascio)}
+
+This is the primary textbook for the course. Read \textbf{selected sections only} --- the full book is 360+ pages and much of it is not needed for this project.
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{cXX}
+\toprule
+\textbf{Read?} & \textbf{Ch. / Section} & \textbf{Why} \\
+\midrule
+\checkmark & Ch 3: The Neural Network & Activations (sigmoid, tanh, ReLU), softmax output, feed-forward structure \\
+\checkmark & Ch 4: Training NN & Backpropagation, gradient descent, overfitting, validation sets \\
+\checkmark & Ch 5: PyTorch (all) & Tensors, gradients, nn.Module, Datasets, DataLoaders \\
+\checkmark & Ch 6: \textit{Adam, Momentum, RMSProp only} & Skip second-order methods; read just the optimizer sections \\
+\checkmark & Ch 8: \textit{Word2Vec \& embeddings concept only} & Skip autoencoders, PCA; understand embedding layers \\
+\checkmark & Ch 9: \textit{Self-Attention \& Transformers only (p. 239)} & Skip RNNs, LSTMs, N-grams, POS tagging \\
+\midrule
+$\circ$ & Ch 2: \textit{Cross entropy / KL divergence only} & Read just that section if cross-entropy is unfamiliar \\
+$\circ$ & Ch 1: Linear Algebra & Reference only --- skim if comfortable with matrices \\
+\midrule
+--- & Ch 7: Convolutional Neural Networks & Not used in NLP transformers \\
+--- & Ch 10: Generative Models & GANs / VAEs not relevant \\
+--- & Ch 11: Interpretability & LIME / SHAP not needed \\
+--- & Ch 12: Memory Networks & NTM / DNC not used \\
+--- & Ch 13: Reinforcement Learning & Entirely separate topic \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Estimated reading:} $\sim$140 pages across Ch 3, 4, 5, 6 (partial), 8 (partial), 9 (partial). Read in this order: 3 $\rightarrow$ 4 $\rightarrow$ 5 $\rightarrow$ 6 (optimizers) $\rightarrow$ 9 (transformer) $\rightarrow$ 8 (embeddings).
+
+\subsection{Additional Learning Resources}
+
+\begin{enumerate}[nosep]
+    \item \textbf{3Blue1Brown} --- ``Neural Networks'' series; ``Attention in Transformers, Visually Explained'' \hfill (YouTube, 15-30 min each)
+    \item \textbf{PyTorch in 60 Minutes} \hfill \url{https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html}
+    \item \textbf{Hugging Face NLP Course (Chapters 1-3)} \hfill \url{https://huggingface.co/learn/nlp-course}
+    \item \textbf{Illustrated Transformer (Jay Alammar)} \hfill \url{http://jalammar.github.io/illustrated-transformer/}
+    \item \textbf{The Annotated Transformer (harvardnlp)} \hfill \url{http://nlp.seas.harvard.edu/2018/04/03/attention.html}
+    \item \textbf{Text Classification with Transformers} \hfill \url{https://huggingface.co/docs/transformers/tasks/sequence_classification}
+    \item \textbf{XNLI Paper} --- Conneau et al., 2018, ``XNLI: Evaluating Cross-lingual Sentence Representations''
+    \item \textbf{XLM-RoBERTa Paper} --- Conneau et al., 2019, ``Unsupervised Cross-lingual Representation Learning at Scale''
+\end{enumerate}

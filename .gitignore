@@ -1,0 +1,16 @@
+*.pyc
+__pycache__/
+_minted*/
+*.aux
+*.log
+*.out
+*.toc
+*.pyg
+*.listing
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+timing-run/
+.DS_Store
+.venv/
+venv/

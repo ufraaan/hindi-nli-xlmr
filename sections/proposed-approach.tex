@@ -1,0 +1,25 @@
+\section{Proposed Approach}
+
+\subsection{Overview}
+
+We will build a Textual Entailment system for Hindi by fine-tuning \textbf{XLM-RoBERTa}, a multilingual transformer pre-trained on 100 languages, on the \textbf{XNLI dataset}.
+
+\subsection{Why XLM-RoBERTa?}
+
+\begin{itemize}[nosep]
+    \item Pre-trained on 100 languages including Hindi and Urdu
+    \item State-of-the-art on cross-lingual NLP benchmarks
+    \item Achieved +9.2\% accuracy improvement for Urdu on XNLI over previous models (Conneau et al., 2019)
+    \item No language identification needed --- model infers language automatically
+    \item Available in base (125M params) and large (355M params) variants
+\end{itemize}
+
+\subsection{Why XNLI Dataset?}
+
+\begin{itemize}[nosep]
+    \item 5,000 test pairs and 2,500 validation pairs per language
+    \item Professionally translated from English MultiNLI by human translators
+    \item Covers 14 diverse text genres (fiction, telephone speech, letters, 9/11 report, etc.)
+    \item Three labels: Entailment, Neutral, Contradiction --- richer than the original paper's binary setup
+    \item Freely available on Hugging Face Datasets
+\end{itemize}

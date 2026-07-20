@@ -1,0 +1,20 @@
+\section{Expected Results \& Comparison}
+
+\begin{table}[h]
+\centering
+\caption{Comparison: Original Work vs. Proposed Work}
+\begin{tabularx}{\textwidth}{lXX}
+\toprule
+\textbf{Metric} & \textbf{Original (Arabic)} & \textbf{Proposed (Hindi)} \\
+\midrule
+Language & Arabic & Hindi \\
+Dataset & ArbTEDS (618 pairs) & XNLI Hindi (392k train, 5k test) \\
+Approach & Lexical + bigram matching & XLM-RoBERTa fine-tuning \\
+Labels & Binary (Entails / Not) & 3-way (Entailment / Neutral / Contradiction) \\
+Algorithm & Threshold-based rules & 12-layer Transformer with attention \\
+Feature Engineering & Manual (POS, NER, stems) & None (learned end-to-end) \\
+Accuracy & 61\% (precision/recall) & Expected 85-88\% \\
+Training Time & N/A (rule-based) & 30-45 min per epoch on M5 GPU \\
+\bottomrule
+\end{tabularx}
+\end{table}
