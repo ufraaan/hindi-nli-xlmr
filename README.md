@@ -76,3 +76,9 @@ make paper    # -> paper/main.pdf
 | 19 | brahma | multilingual tokenization for indic languages | 2026 | findings of acl | [x] [ref-19.pdf](https://github.com/ufraaan/hindi-nli-xlmr/blob/main/references/ref-19.pdf) |
 | 20 | loshchilov + hutter | decoupled weight decay (adamw) | 2019 | iclr | [x] [ref-20.pdf](https://github.com/ufraaan/hindi-nli-xlmr/blob/main/references/ref-20.pdf) |
 | 21 | kingma + ba | adam | 2015 | iclr | [x] [ref-21.pdf](https://github.com/ufraaan/hindi-nli-xlmr/blob/main/references/ref-21.pdf) |
+
+## license
+
+apache-2.0. see [LICENSE](LICENSE).
+
+note: pdfs in `references/` are third-party publisher-copyrighted works, kept for reference only, and excluded from this license.
