@@ -17,50 +17,52 @@ Two-phase deep learning project (8 weeks).
 
 ## 0. Setup
 
-- [ ] Create Python venv (`.venv`)
-- [ ] Install pinned deps (`requirements.txt`)
-- [ ] Verify MPS (Apple GPU) device is available
-- [ ] Confirm XNLI Hindi loads from Hugging Face
+- [x] Create Python venv (`.venv`)
+- [x] Install pinned deps (`requirements.txt`)
+- [x] Verify MPS (Apple GPU) device is available
+- [x] Confirm XNLI Hindi loads from Hugging Face
 
 ## 1. Phase 1 — NLI Assignment
 
 ### 1.1 Code
 
 - [x] Refactor `train.py` — arg-driven fine-tuning pipeline (epochs/subset/output)
-- [ ] Write `inference.py` — demo prediction on sample Hindi premise/hypothesis pairs
-- [ ] Write `eval_nli.py` — test evaluation + metrics + confusion matrix (replaces old evaluate.py which shadowed HF evaluate)
-- [ ] `requirements.txt` / `setup.sh` final review
+- [x] Write `inference.py` — demo prediction on sample Hindi premise/hypothesis pairs
+- [x] Write `eval_nli.py` — test evaluation + metrics + confusion matrix (replaces old evaluate.py which shadowed HF evaluate)
+- [x] `requirements.txt` / `setup.sh` final review
+- [x] `src/plot_curve.py` — training-curve figure from `output/training.log`
 
 ### 1.2 Training
 
-- [ ] Timing run (1 epoch) → record real throughput on Apple M5
-- [ ] Full run (3 epochs) on XNLI Hindi train split
-- [ ] Save best model + tokenizer to `output/`
+- [x] Timing run (1 epoch) → record real throughput on Apple M5
+- [x] Reported run (2 epochs, 9% of XNLI-Hindi train = 35,343 pairs) → val 63.86%, test 63.15%
+- [x] Save best model + tokenizer to `output/`
 
 ### 1.3 Evaluation
 
-- [ ] Evaluate on XNLI Hindi test set (5,010 pairs)
-- [ ] Save `results/metrics.json` (accuracy, precision, recall, F1)
-- [ ] Save `results/confusion_matrix.png`
-- [ ] Save predictions/labels (`results/predictions.npy`, `results/labels.npy`)
-- [ ] Compare against Khader et al. (61% P/R) → XLM-R-base XNLI-hi ~72--76%
+- [x] Evaluate on XNLI Hindi test set (5,010 pairs)
+- [x] Save `results/metrics.json` (accuracy, precision, recall, F1)
+- [x] Save `results/confusion_matrix.png`
+- [x] Save predictions/labels (`results/predictions.npy`, `results/labels.npy`)
+- [x] Compare against Khader et al. (61% P/R) → 63.15% test acc (beats baseline; below published XLM-R-base XNLI-hi ~72--76% because of 9% data budget)
 
 ### 1.4 Inference Demo
 
-- [ ] Sample Hindi pairs showing Entailment / Neutral / Contradiction
-- [ ] Run `inference.py` end-to-end, capture sample output
+- [x] Sample Hindi pairs showing Entailment / Neutral / Contradiction
+- [x] Run `inference.py` end-to-end, capture sample output (4/6 correct)
 
-### 1.5 Assignment Paper (`nli-paper.tex` → `nli-paper.pdf`)
+### 1.5 Assignment Paper (`paper/main.tex` → `paper/main.pdf`)
 
-- [ ] Abstract (150–200 words)
-- [ ] Introduction — task, motivation for Hindi, gaps in original work
-- [ ] Related Work — Khader et al., XLM-RoBERTa, XNLI, cross-lingual NLI
-- [ ] Dataset — XNLI Hindi: size, sources, label distribution, sample pairs
-- [ ] Methodology — XLM-RoBERTa architecture, fine-tuning, hyperparameters
-- [ ] Experiments & Results — metrics, comparison table with original
-- [ ] Conclusion & Future Work
-- [ ] References (6–8 key citations)
-- [ ] Compile to `nli-paper.pdf`
+- [x] Abstract (150–200 words)
+- [x] Introduction — task, motivation for Hindi, gaps in original work
+- [x] Related Work — Khader et al., XLM-RoBERTa, XNLI, cross-lingual NLI
+- [x] Dataset — XNLI Hindi: size, sources, label distribution, sample pairs
+- [x] Methodology — XLM-RoBERTa architecture, fine-tuning, hyperparameters
+- [x] Experiments & Results — metrics, comparison table with original
+- [x] Conclusion & Future Work
+- [x] References (6–8 key citations)
+- [x] Compile to `paper/main.pdf` (8 pages)
+- [x] Fill university/college name in `\IEEEauthorblockA` (Lords Institute of Engineering & Technology)
 
 ### 1.6 Docs
 
@@ -88,6 +90,7 @@ Two-phase deep learning project (8 weeks).
 | `src/train.py` | Fine-tuning pipeline |
 | `src/eval_nli.py` | Test evaluation + metrics + confusion matrix |
 | `src/inference.py` | Demo inference |
+| `src/plot_curve.py` | Training-curve figure generator |
 | `paper/main.tex` | IEEE assignment paper |
 | `output/` | Trained model + tokenizer |
 | `results/` | metrics.json, confusion_matrix.png, predictions |

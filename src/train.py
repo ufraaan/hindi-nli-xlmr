@@ -324,7 +324,7 @@ def main():
     log._out("  TRAINING COMPLETE")
     log._out(f"{'─' * 57}")
     log.kv("Duration", e_str(elapsed))
-    log.kv("Throughput", f"{len(train_enc) / max(elapsed, 1e-6):.1f} samples/s")
+    log.kv("Throughput", f"{len(train_enc) * args.epochs / max(elapsed, 1e-6):.1f} samples/s")
 
     log.section("VALIDATION EVAL")
     metrics = trainer.evaluate()
@@ -349,6 +349,8 @@ def main():
     log.metric("Tokenization", e_str(t_tok))
     log.metric("Training", e_str(elapsed))
     log.kv("Total wall time", e_str(elapsed + t_tok))
+    log.blank()
+    log.step("Next: python src/eval_nli.py --model-dir " + model_path)
     log.blank()
     log.step("Next: python src/eval_nli.py --model-dir " + model_path)
 
