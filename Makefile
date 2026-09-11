@@ -1,15 +1,18 @@
-TEX = main.pdf
+.PHONY: paper plan clean
 
-$(TEX): main.tex sections/*.tex
-	TEXMF_OUTPUT_DIRECTORY=. pdflatex -shell-escape main.tex
-	TEXMF_OUTPUT_DIRECTORY=. pdflatex -shell-escape main.tex
+paper:
+	cd paper && pdflatex -interaction=nonstopmode main.tex
+	cd paper && bibtex main
+	cd paper && pdflatex -interaction=nonstopmode main.tex
+	cd paper && pdflatex -interaction=nonstopmode main.tex
+	@echo "wrote paper/main.pdf"
 
-.PHONY: clean cleanall
+plan:
+	cd plan && pdflatex -interaction=nonstopmode main.tex
+	cd plan && pdflatex -interaction=nonstopmode main.tex
+	@echo "wrote plan/main.pdf"
 
 clean:
-	rm -f main.aux main.log main.out main.toc main.pyg main.listing main.pdf
-	rm -f sections/*.aux
+	rm -f paper/*.aux paper/*.bbl paper/*.blg paper/*.log paper/*.out paper/*.toc
+	rm -f plan/*.aux plan/*.log plan/*.out plan/*.toc plan/sections/*.aux
 	rm -rf _minted
-
-cleanall: clean
-	rm -f main.pdf

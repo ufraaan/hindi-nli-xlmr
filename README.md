@@ -1,41 +1,43 @@
-# dl textual entailment project
+# Hindi textual entailment (XLM-RoBERTa on XNLI)
 
-two-phase plan for a deep learning assignment:
+Course assignment adapting Khader et al. (2016) Arabic lexical RTE to Hindi via XLM-RoBERTa fine-tuning.
 
-**phase 1:** fine-tune xlm-roberta on xnli hindi for textual entailment. adapts the 2016 khader et al. arabic paper using modern transformers.
+## Layout
 
-**phase 2:** write a technical review paper on knowledge graph construction for indic languages, using ahmed et al. (2022) arabic kg survey as template.
+```
+src/train.py          fine-tune
+src/eval_nli.py       test metrics + confusion matrix
+src/inference.py      sample Hindi pairs
+paper/main.tex        IEEE two-column paper
+paper/references.bib
+plan/                 original project-plan LaTeX
+results/              metrics.json after eval
+output/               saved model (created by training)
+```
 
-## structure
-
-- `train.py` — training script
-- `evaluate.py` — load saved model, test on xnli, save metrics + confusion matrix
-- `main.tex` + `sections/` — project plan (27 page pdf via `make`)
-- `requirements.txt` — pinned deps
-- `setup.sh` — one-command venv + install
-- `results/` — metrics.json, confusion_matrix.png, predictions
-
-## setup
+## Setup
 
 ```bash
-bash setup.sh           # create venv and install deps
+bash setup.sh
 source .venv/bin/activate
 ```
 
-## make
+## Train and evaluate
+
+Run from the repo root.
 
 ```bash
-make        # build main.pdf
-make clean  # remove build artifacts
+python src/train.py --epochs 1 --subset 0.05 --output-dir ./timing-run   # ~25 min check
+python src/train.py --output-dir ./output                               # 3 epochs, full data
+python src/eval_nli.py --model-dir output/model
+python src/inference.py --model-dir output/model
 ```
 
-## train & eval
+Then fill every red `[TBD]` in `paper/main.tex` from `output/val_metrics.json`, `results/metrics.json`, and `output/training.log`.
+
+## Compile the IEEE paper
 
 ```bash
-python train.py         # fine-tune xlm-roberta on xnli hindi
-python evaluate.py      # evaluate saved model on test set
+make paper    # -> paper/main.pdf
+make plan     # project plan PDF
 ```
-
-## tech
-
-pytorch, transformers, datasets, xlm-roberta, xnli, metal (m5 gpu)

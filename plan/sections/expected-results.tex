@@ -13,7 +13,7 @@ Approach & Lexical + bigram matching & XLM-RoBERTa fine-tuning \\
 Labels & Binary (Entails / Not) & 3-way (Entailment / Neutral / Contradiction) \\
 Algorithm & Threshold-based rules & 12-layer Transformer with attention \\
 Feature Engineering & Manual (POS, NER, stems) & None (learned end-to-end) \\
-Accuracy & 61\% (precision/recall) & Expected 85-88\% \\
+Accuracy & 61\% P/R (binary, 100 pairs) & Target 72--76\% (XLM-R base on XNLI-hi) \\
 Training Time & N/A (rule-based) & 30-45 min per epoch on M5 GPU \\
 \bottomrule
 \end{tabularx}
