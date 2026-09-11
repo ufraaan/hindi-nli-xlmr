@@ -71,8 +71,7 @@ make paper    # -> paper/main.pdf
 | 15 | lample + conneau | cross-lingual language model pretraining (xlm) | 2019 | neurips |
 | 16 | kudo + richardson | sentencepiece | 2018 | emnlp |
 | 17 | wolf | transformers library | 2020 | emnlp |
-| 18 | chitale | updesh: instruction data for 13 indic languages | 2026 | acl |
-| 19 | jajee | indicmmlu-pro | 2026 | gem workshop |
-| 20 | brahma | multilingual tokenization for indic languages | 2026 | findings of acl |
-| 21 | loshchilov + hutter | decoupled weight decay (adamw) | 2019 | iclr |
-| 22 | kingma + ba | adam | 2015 | iclr |
+| 18 | jajee | indicmmlu-pro | 2026 | gem workshop |
+| 19 | brahma | multilingual tokenization for indic languages | 2026 | findings of acl |
+| 20 | loshchilov + hutter | decoupled weight decay (adamw) | 2019 | iclr |
+| 21 | kingma + ba | adam | 2015 | iclr |
