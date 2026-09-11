@@ -22,6 +22,7 @@ src/inference.py    try a saved model on sample pairs
 src/plot_curve.py   training curve from a log
 paper/main.tex      ieee two-column paper
 paper/references.bib
+papers/             downloaded reference pdfs (ref-XX.pdf by ref number)
 results/            eval outputs
 output/             saved model
 ```
@@ -52,26 +53,26 @@ make paper    # -> paper/main.pdf
 
 ## references
 
-| # | first author | paper | year | where |
-|---|---|---|---|---|
-| 1 | khader | textual entailment for arabic (lexical + semantic matching) | 2016 | ijcis |
-| 2 | dagan | the pascal recognising textual entailment challenge | 2006 | ml challenges |
-| 3 | bowman | snli: large annotated corpus for nli | 2015 | emnlp |
-| 4 | williams | multinli: broad-coverage challenge corpus | 2018 | naacl-hlt |
-| 5 | alabbas | a dataset for arabic textual entailment (arbteds) | 2013 | ranlp |
-| 6 | al-khawaldeh | negation + sentiment in arabic rte | 2015 | wcsit |
-| 7 | conneau | xlm-roberta: cross-lingual representation learning at scale | 2020 | acl |
-| 8 | conneau | xnli: cross-lingual sentence representations | 2018 | emnlp |
-| 9 | pakray | textual entailment via lexical + syntactic similarity | 2011 | ijaia |
-| 10 | devlin | bert | 2019 | naacl-hlt |
-| 11 | vaswani | attention is all you need | 2017 | neurips |
-| 12 | liu | roberta | 2019 | arxiv |
-| 13 | alabbas | arbte: arabic textual entailment | 2011 | ranlp |
-| 14 | alabbas + ramsay | arabic nli with tree edit distance | 2013 | jair |
-| 15 | lample + conneau | cross-lingual language model pretraining (xlm) | 2019 | neurips |
-| 16 | kudo + richardson | sentencepiece | 2018 | emnlp |
-| 17 | wolf | transformers library | 2020 | emnlp |
-| 18 | jajee | indicmmlu-pro | 2026 | gem workshop |
-| 19 | brahma | multilingual tokenization for indic languages | 2026 | findings of acl |
-| 20 | loshchilov + hutter | decoupled weight decay (adamw) | 2019 | iclr |
-| 21 | kingma + ba | adam | 2015 | iclr |
+| # | first author | paper | year | where | pdf |
+|---|---|---|---|---|---|
+| 1 | khader | textual entailment for arabic (lexical + semantic matching) | 2016 | ijcis | [x] ref-01.pdf |
+| 2 | bar-haim | the second pascal recognising textual entailment challenge | 2006 | pascal workshop | [x] ref-02.pdf |
+| 3 | bowman | snli: large annotated corpus for nli | 2015 | emnlp | [x] ref-03.pdf |
+| 4 | williams | multinli: broad-coverage challenge corpus | 2018 | naacl-hlt | [x] ref-04.pdf |
+| 5 | alabbas | a dataset for arabic textual entailment (arbteds) | 2013 | ranlp | [x] ref-05.pdf |
+| 6 | al-khawaldeh | negation + sentiment in arabic rte | 2015 | wcsit | [x] ref-06.pdf |
+| 7 | conneau | xlm-roberta: cross-lingual representation learning at scale | 2020 | acl | [x] ref-07.pdf |
+| 8 | conneau | xnli: cross-lingual sentence representations | 2018 | emnlp | [x] ref-08.pdf |
+| 9 | pakray | textual entailment via lexical + syntactic similarity | 2011 | ijaia | [x] ref-09.pdf |
+| 10 | devlin | bert | 2019 | naacl-hlt | [x] ref-10.pdf |
+| 11 | vaswani | attention is all you need | 2017 | neurips | [x] ref-11.pdf |
+| 12 | liu | roberta | 2019 | arxiv | [x] ref-12.pdf |
+| 13 | alabbas | arbte: arabic textual entailment | 2011 | ranlp | [x] ref-13.pdf |
+| 14 | alabbas + ramsay | arabic nli with tree edit distance | 2013 | jair | [x] ref-14.pdf |
+| 15 | lample + conneau | cross-lingual language model pretraining (xlm) | 2019 | neurips | [x] ref-15.pdf |
+| 16 | kudo + richardson | sentencepiece | 2018 | emnlp | [x] ref-16.pdf |
+| 17 | wolf | transformers library | 2020 | emnlp | [x] ref-17.pdf |
+| 18 | jajee | indicmmlu-pro | 2026 | gem workshop | [ ] |
+| 19 | brahma | multilingual tokenization for indic languages | 2026 | findings of acl | [ ] |
+| 20 | loshchilov + hutter | decoupled weight decay (adamw) | 2019 | iclr | [ ] |
+| 21 | kingma + ba | adam | 2015 | iclr | [ ] |
