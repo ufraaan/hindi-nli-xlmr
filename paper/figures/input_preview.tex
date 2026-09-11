@@ -1,0 +1,17 @@
+\documentclass[12pt]{article}
+\usepackage{fontspec}
+\usepackage{geometry}
+\usepackage{amsmath}
+\geometry{top=0.6in,bottom=0.6in,left=0.5in,right=0.5in}
+\setmainfont{Mukta}
+\pagestyle{empty}
+\begin{document}
+\begin{center}
+{\Large\bfseries Serialized Input Example}\\[0.6em]
+{\normalsize\itshape Premise:}\enspace {\Large मैं एक हिंदी वाक्य लिख रहा हूँ।}\\[0.4em]
+{\normalsize\itshape Hypothesis:}\enspace {\Large यह वाक्य हिंदी में लिखा गया है।}\\[0.8em]
+{\small Tokenized form:}\\[0.3em]
+{\Large $\langle s\rangle$\enspace मैं एक हिंदी वाक्य लिख रहा हूँ।\enspace $\langle/s\rangle\langle/s\rangle$\enspace यह वाक्य हिंदी में लिखा गया है।\enspace $\langle/s\rangle$}\\[0.8em]
+{\normalsize $\Rightarrow$ \textbf{Entailment} (label\,0)}
+\end{center}
+\end{document}

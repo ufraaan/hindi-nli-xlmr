@@ -10,6 +10,8 @@
 \usepackage[hyphens]{url}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
 
 \hypersetup{
   colorlinks=true,
@@ -33,6 +35,7 @@
 \newcommand{\TrainLoss}{0.850}
 \newcommand{\EpOneAcc}{57.35\%}
 \newcommand{\EpTwoAcc}{63.86\%}
+\newcommand{\xlmr}{\href{https://huggingface.co/FacebookAI/xlm-roberta-base}{\texttt{xlm-roberta-base}}}
 
 \begin{document}
 
@@ -193,14 +196,7 @@ Test       & 5{,}010   & held-out report \\
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:preview} shows three real rows from the validation split, one per label, with the English source of each MultiNLI translation. Entailment examples typically add or restate information; neutral pairs share topic but not an inferable claim; contradictions flip a fact, often carried by a single negation.
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=\textwidth]{figures/dataset_preview.png}
-\caption{Real XNLI-Hindi rows (validation split), with English origins.}
-\label{fig:preview}
-\end{figure*}
+Real validation rows illustrate the three classes: entailment examples typically add or restate information; neutral pairs share topic but not an inferable claim; contradictions flip a fact, often carried by a single negation.
 
 Labels are roughly balanced. On a 5\% prefix of the train split (19{,}635 pairs, the sanity run) we counted 6{,}648 entailment, 5{,}836 neutral, and 7{,}151 contradiction. A majority-class predictor on a balanced three-way test set scores about 33.3\% accuracy. Always predicting one class yields macro-precision $1/9 \approx 0.111$ and macro-recall $1/3 \approx 0.333$. We treat that metric fingerprint as a \emph{failed training run}, not as a model result.
 
@@ -208,15 +204,24 @@ Labels are roughly balanced. On a 5\% prefix of the train split (19{,}635 pairs,
 ArbTEDS~\citep{alabbas2013dataset} has 618 pairs; \citet{khader2016textual} test on 100 of them (42 Entails, 58 NotEntails). Hypotheses are news headlines and texts are article sentences, collected with a Google API and triple-annotated. The corpus is binary and two orders of magnitude smaller than XNLI-Hindi train. Direct numeric comparison is therefore only a rubric check (``did we beat 61\% on our task?''), not a claim that XLM-R would score 75\% on ArbTEDS or that overlap would score 61\% on XNLI-hi.
 
 \subsection{Input format and examples}
-Table~\ref{tab:ex} shows hand-written Hindi pairs used to smoke-test a saved model. They are not from XNLI and are not used in the official score. Tokenization uses the XLM-R SentencePiece model. A pair is serialized as
+Table~\ref{tab:ex} shows hand-written demo pairs used to smoke-test a saved model. They are not from XNLI and are not used in the official score. Tokenization uses the XLM-R SentencePiece model. A pair is serialized as
 \[
 \langle s\rangle\ \textit{premise}\ \langle/s\rangle\langle/s\rangle\ \textit{hypothesis}\ \langle/s\rangle
 \]
 and truncated or padded to 128 tokens. Length 128 is the XNLI fine-tuning default in much of the literature; longer premises are truncated from the right. On a 64-example probe, non-pad lengths ranged from 16 to 128 (mean $\approx 69$), so 128 covers most Hindi XNLI pairs but not all.
 
+Figure~\ref{fig:input} shows the template with real Hindi text in the premise and hypothesis slots.
+
+\begin{figure}[!b]
+\centering
+\includegraphics[width=\columnwidth]{figures/input_preview.png}
+\caption{Serialized input for a Hindi validation pair: Devanagari text fills the premise and hypothesis slots of the $\langle s\rangle\cdots\langle/s\rangle\langle/s\rangle\cdots\langle/s\rangle$ template.}
+\label{fig:input}
+\end{figure}
+
 \begin{table}[!t]
 \centering
-\caption{Illustrative Hindi pairs (demo set, not XNLI).}
+\caption{Illustrative pairs (hand-written demo set, shown in English).}
 \label{tab:ex}
 \begin{tabular}{@{}p{0.28\linewidth}p{0.28\linewidth}l@{}}
 \toprule
@@ -227,11 +232,20 @@ It is raining. & Vehicles are moving on the road. & N \\
 The weather is very good today. & It is raining heavily today. & C \\
 \bottomrule
 \end{tabular}\\[0.3em]
-{\footnotesize Hand-written Hindi demo pairs (not XNLI rows). E/N/C $=$ entailment/neutral/contradiction.}
+{\footnotesize Hand-written demo pairs (not XNLI rows), shown in English. E/N/C $=$ entailment/neutral/contradiction.}
 \end{table}
 
 \section{Method}
 \label{sec:method}
+
+\begin{figure}[!t]
+  \centering
+  \input{figures/architecture.tex}
+  \caption{System architecture. The Hindi sentence pair is serialized with special tokens and fed into XLM-RoBERTa-base; the first-token state feeds a three-way classification head. The dashed arrow indicates the gradient path during training only.}
+  \label{fig:arch}
+\end{figure}
+
+Figure~\ref{fig:arch} gives the overall architecture.
 
 \subsection{Encoder}
 Let $x=(x_1,\ldots,x_n)$ be the tokenized pair with $n\le 128$. XLM-RoBERTa~\citep{conneau2020xlmr} is a 12-block Transformer encoder~\citep{vaswani2017attention}. In each block, queries, keys, and values $Q,K,V$ for a head are linear maps of the residual stream, and
@@ -239,7 +253,7 @@ Let $x=(x_1,\ldots,x_n)$ be the tokenized pair with $n\le 128$. XLM-RoBERTa~\cit
   \mathrm{Attention}(Q,K,V)
   = \mathrm{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_h}}\right)V
 \end{equation}
-with $d_h=64$ (12 heads $\times$ 64 $=$ 768). A position-wise MLP then expands to 3{,}072 units and back. Residual connections and layer normalization follow the RoBERTa~\citep{liu2019roberta} layout. There is no token-type embedding (XLM-R's type vocabulary size is 1); two consecutive separator tokens mark the premise/hypothesis boundary. We load \texttt{xlm-roberta-base} and replace the masked-language-model head with a sequence-classification head. All 278M parameters are trainable; we do not freeze the encoder. Dropout 0.1 remains at the values shipped in the pretrained config.
+with $d_h=64$ (12 heads $\times$ 64 $=$ 768). A position-wise MLP then expands to 3{,}072 units and back. Residual connections and layer normalization follow the RoBERTa~\citep{liu2019roberta} layout. There is no token-type embedding (XLM-R's type vocabulary size is 1); two consecutive separator tokens mark the premise/hypothesis boundary. We load \xlmr{} and replace the masked-language-model head with a sequence-classification head. All 278M parameters are trainable; we do not freeze the encoder. Dropout 0.1 remains at the values shipped in the pretrained config.
 
 \subsection{Classification head}
 Let $h_{\langle s\rangle} \in \mathbb{R}^{768}$ be the final-layer hidden state at the first token. The RoBERTa classification head is
@@ -265,7 +279,7 @@ We use AdamW~\citep{loshchilov2019decoupled,kingma2015adam} with decoupled weigh
 \toprule
 \textbf{Setting} & \textbf{Value} \\
 \midrule
-Model & \texttt{xlm-roberta-base} \\
+Model & \xlmr{} \\
 Parameters (with head) & 278{,}045{,}955 \\
 Labels & 3 (E / N / C) \\
 Max length & 128 \\

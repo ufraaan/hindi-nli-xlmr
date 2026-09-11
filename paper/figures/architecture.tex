@@ -1,0 +1,27 @@
+\begin{tikzpicture}[
+    box/.style={draw, rounded corners=1.2pt, line width=1pt, fill=white,
+                minimum width=20mm, align=center, font=\scriptsize},
+    enc/.style={box, fill=blue!10},
+    trn/.style={box, fill=white, dashed},
+    arw/.style={-{Stealth[length=1.8mm, width=1.2mm, inset=0.2mm]}, line width=1pt},
+    elbl/.style={font=\tiny, inner sep=1.5pt}
+  ]
+
+  % ---- center column: inference pipeline (top to bottom) ----
+  \node[box] (inp) {$T$ (premise)\\$H$ (hypothesis)};
+  \node[box, below=6mm of inp] (tok) {SentencePiece\\ tokenizer};
+  \node[enc, below=6mm of tok] (enc) {\textbf{XLM-RoBERTa-base}\\ Transformer encoder\\ $\times 12$ layers};
+  \node[box, below=6mm of enc] (hid) {$h_s$ (768-d)\\ first-token state};
+  \node[box, below=6mm of hid] (head) {\textbf{classification head}\\ 3 logits};
+  \node[enc, below=6mm of head] (out) {\textbf{softmax} $\to$ \textbf{argmax}\\ E / N / C};
+
+  \draw[arw] (inp)  -- node[right=2pt, elbl] {token IDs} (tok);
+  \draw[arw] (tok)  -- (enc);
+  \draw[arw] (enc)  -- (hid);
+  \draw[arw] (hid)  -- (head);
+  \draw[arw] (head) -- (out);
+
+  % ---- training side box (dashed, backprop path only) ----
+  \node[trn, left=9mm of enc] (trn) {training\\ cross-entropy loss\\ AdamW, lr $2\times 10^{-5}$};
+  \draw[arw, dashed] (trn.east) -- node[above, elbl] {gradients} (enc.west);
+\end{tikzpicture}
